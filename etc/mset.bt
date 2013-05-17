@@ -1,0 +1,82 @@
+//--------------------------------------
+//--- 010 Editor v4.0.2 Binary Template
+//
+// File: mset.bt
+// Purpose: Parse .Mset file containers
+//--------------------------------------
+
+int paddingLength(int strLen) {
+    local int extraBytes = (4 - ((strLen + 6) & 3)) & 3;
+    return extraBytes;
+}
+
+typedef struct {
+    int offset;
+    int length;
+} SectionDef;
+
+typedef struct {
+    short fileNameLen;
+    char fileName[fileNameLen];
+    short numSections;
+    SectionDef sections[numSections];
+    int padding[3];
+} FileDef <optimize=false>;
+
+typedef struct {
+    int headerSize; // 0x50? 0x5A?
+BigEndian();
+    int unk_4;
+    int unk_8;
+    short numFiles;
+    FileDef files[numFiles];
+} Header <optimize=false>;
+
+typedef struct {
+    short strlen;
+    char path[strlen];
+    byte padding[paddingLength(strlen)];
+    time_t lastUpdated;
+} FilePath <optimize=false, read=readFilePath>;
+
+char[] readFilePath(FilePath& p) { return p.path; }
+
+typedef struct {
+LittleEndian();
+    short sectionNameLength;
+    char sectionName[sectionNameLength];
+    int sectionLength;
+    int numFiles;
+    FilePath paths[numFiles];
+} FilesSection <optimize=false>;
+
+typedef struct {
+    int compressedSize; // in bytes.. 0 for uncompressed data
+    int decompressedSize; // may be negative, if so take absolute value
+    int offset;
+} MsetDataOffset;
+
+typedef struct {
+    int stringTableOffset;
+    int unk_4; // verts?
+    int unk_8; //
+    int unk_C;
+    float unk_10;
+    float unk_14;
+    int unk_18;
+    int unk_1C;
+    MsetDataOffset offsets[12];
+} MsetHeader;
+
+Header header;
+FilesSection files;
+
+BigEndian();
+local int i;
+local int j;
+for (i = 0; i < header.numFiles; i++) {
+    for (j = 0; j < header.files[i].numSections; j++) {
+        FSeek(header.files[i].sections[j].offset);
+        MsetHeader msetData;
+    }    
+}

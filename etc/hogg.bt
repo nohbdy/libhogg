@@ -1,0 +1,64 @@
+//--------------------------------------
+//--- 010 Editor v4.0.2 Binary Template
+//
+// File: hogg.bt
+// Author: nohh
+// Revision:
+// Purpose: Parse .hogg files used in Cryptic's Neverwinter
+//--------------------------------------
+
+typedef struct {
+    int magicNumber; // 0xDEADF00D
+    int unk_4;
+    int data_entry_section_size;
+    int compression_info_section_size;
+} FileHeader;
+
+typedef struct {
+    byte unk_0; // Usually 1 for valid entries.. 2 for last/invalid entries?
+    int index;
+    int filePathLength;
+	if (unk_0 == 1) {
+		char filePath[filePathLength]; // Null Terminated
+	}
+} FileEntry <read=ReadFileEntry,optimize=false>;
+
+string ReadFileEntry(FileEntry& data) {
+    return data.filePath;
+}
+
+typedef struct {
+    int64 file_offset;
+    int size_on_disk;
+    int timestamp; // seconds since 1970
+    int unk_10; // hash?
+    int unk_14; // 0
+    int unk_18; // 0xFFFE
+    int index; // Starts at 0 and goes up by one each entry...
+} DataEntry;
+
+typedef struct {
+    int file_path_id; // Data ID of the file's path
+    int excerpt_id;   // Data ID of a data excerpt, or -1 if there is none...
+    int uncompressed_size; // 0 == Uncompressed
+    int unk_C; // 0
+} CompressionInfo;
+
+FileHeader fileHeader;
+
+FSeek(0x41C);
+
+int entryLengthInBytes;
+int entryLengthInBytes_Copy;
+
+local long entryEnd = FTell() + entryLengthInBytes;
+while (FTell() < entryEnd) {
+    FileEntry entries;
+}
+
+local int numEntries = fileHeader.data_entry_section_size / 0x20;
+FSeek(0x10018);
+DataEntry section_b[numEntries];
+
+numEntries = fileHeader.compression_info_section_size / 0x10;
+CompressionInfo section_c[numEntries];
